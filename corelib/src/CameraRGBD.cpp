@@ -1123,6 +1123,7 @@ CameraFreenect2::CameraFreenect2(
 		listener_ = new libfreenect2::SyncMultiFrameListener(libfreenect2::Frame::Color  | libfreenect2::Frame::Depth);
 		break;
 	}
+    myAda = new Adafruit_UART();
 #endif
 }
 
@@ -1213,6 +1214,9 @@ bool CameraFreenect2::init(const std::string & calibrationFolder, const std::str
 		dev_->setIrAndDepthFrameListener(listener_);
 
 		dev_->start();
+
+        myAda->Open();
+        myAda->Init();
 
 		UINFO("CameraFreenect2: device serial: %s", dev_->getSerialNumber().c_str());
 		UINFO("CameraFreenect2: device firmware: %s", dev_->getFirmwareVersion().c_str());
@@ -1314,7 +1318,18 @@ SensorData CameraFreenect2::captureImage()
 #ifndef LIBFREENECT2_THREADING_STDLIB
 		UDEBUG("Waiting for new frames... If it is stalled here, rtabmap should link on libusb of libfreenect2. "
 				"Tip, before starting rtabmap: \"$ export LD_LIBRARY_PATH=~/libfreenect2/depends/libusb/lib:$LD_LIBRARY_PATH\"");
-		listener_->waitForNewFrame(frames);
+        UMutex myMutex;
+
+        myMutex.lock();
+        listener_->waitForNewFrame(frames);
+        myMutex.unlock();
+
+        myMutex.lock();
+        Eigen::Quaternionf quat = myAda->returnPose();
+        myMutex.unlock();
+
+        Eigen::Matrix3f R = quat.matrix();
+        cv::Mat R_OpenCV(R.rows(), R.cols(), CV_32FC1, R.data());
 #else
 		if(!listener_->waitForNewFrame(frames, 1000))
 		{
@@ -1649,8 +1664,8 @@ SensorData CameraFreenect2::captureImage()
 						cx,  //cx
 						cy, // cy
 						this->getLocalTransform());
-			}
-			data = SensorData(rgb, depth, model, this->getNextSeqID(), stamp);
+            }
+            data = SensorData(rgb, depth, model, this->getNextSeqID(), stamp, R_OpenCV);
 
 			listener_->release(frames);
 		}

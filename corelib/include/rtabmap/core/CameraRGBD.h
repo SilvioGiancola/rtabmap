@@ -39,6 +39,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/signals2/connection.hpp>
 
+#include <rtabmap/core/adafruit_uart.h>
+
 namespace openni
 {
 class Device;
@@ -259,6 +261,7 @@ private:
 	bool bilateralFiltering_;
 	bool edgeAwareFiltering_;
 	bool noiseFiltering_;
+    Adafruit_UART * myAda;
 };
 
 

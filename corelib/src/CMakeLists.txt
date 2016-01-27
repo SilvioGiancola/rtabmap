@@ -64,6 +64,15 @@ SET(SRC_FILES
 	sqlite3/sqlite3.c
 )
 
+
+IF("${RTABMAP_QT_VERSION}" STREQUAL "4")
+    #This will generate moc_* for Qt
+    QT4_WRAP_CPP(moc_srcs include/rtabmap/core/adafruit_UART.h)
+    ### Qt Gui stuff  end###
+ELSE()
+    QT5_WRAP_CPP(moc_srcs include/rtabmap/core/adafruit_UART.h)
+ENDIF()
+
 SET(INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/utilite/include
 	${CMAKE_CURRENT_SOURCE_DIR}/../include
@@ -228,6 +237,12 @@ INCLUDE_DIRECTORIES(${INCLUDE_DIRS})
 # The extension is automatically found.
 ADD_LIBRARY(rtabmap_core ${SRC_FILES} ${RESOURCES_HEADERS})
 TARGET_LINK_LIBRARIES(rtabmap_core rtabmap_utilite ${LIBRARIES})
+
+IF("${RTABMAP_QT_VERSION}" STREQUAL "4")
+    QT4_USE_MODULES(rtabmap_core SerialPort)
+ELSE()
+    QT5_USE_MODULES(rtabmap_core SerialPort)
+ENDIF()
 
 SET_TARGET_PROPERTIES(
      rtabmap_core
