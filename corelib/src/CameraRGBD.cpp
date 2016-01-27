@@ -1131,6 +1131,7 @@ CameraFreenect2::~CameraFreenect2()
 {
 #ifdef WITH_FREENECT2
 	UDEBUG("");
+    myAda->close();
 	if(dev_)
 	{
 		dev_->stop();
@@ -1325,11 +1326,11 @@ SensorData CameraFreenect2::captureImage()
         myMutex.unlock();
 
         myMutex.lock();
-        Eigen::Quaternionf quat = myAda->returnPose();
+        // Eigen::Quaternionf quat = myAda->returnPose();
+        Eigen::Quaternionf quat = Eigen::Quaternionf::Identity();
+        Transform currentPose = Transform::fromEigen3f(Eigen::Affine3f(quat));
         myMutex.unlock();
 
-        Eigen::Matrix3f R = quat.matrix();
-        cv::Mat R_OpenCV(R.rows(), R.cols(), CV_32FC1, R.data());
 #else
 		if(!listener_->waitForNewFrame(frames, 1000))
 		{
@@ -1665,7 +1666,8 @@ SensorData CameraFreenect2::captureImage()
 						cy, // cy
 						this->getLocalTransform());
             }
-            data = SensorData(rgb, depth, model, this->getNextSeqID(), stamp, R_OpenCV);
+            data = SensorData(rgb, depth, model, this->getNextSeqID(), stamp);
+            data.setPose(currentPose);
 
 			listener_->release(frames);
 		}

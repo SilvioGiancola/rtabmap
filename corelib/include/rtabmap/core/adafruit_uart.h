@@ -62,7 +62,7 @@ public:
 
 class Adafruit_UART// : public QSerialPort
 {
-  //  Q_OBJECT
+    //  Q_OBJECT
 public:
 
     // Constructor
@@ -118,7 +118,7 @@ public:
     }
 
 
-    // Try first communication and initilize the device
+    // Try first communication and initialize the device
     int Init()
     {
         std::cout << "  --> INIT <--  " << std::endl;
@@ -251,7 +251,7 @@ public:
         }
 
 
-       // int16_t s[4];
+        // int16_t s[4];
         //int off = 2;
 
 
@@ -422,7 +422,7 @@ public:
         if( !(((quint8)input[0] == (quint8)0xBB) &&
               ((quint8)input[1] == (quint8)8)) )
         {
-              std::cout << "error" << std::endl;
+            std::cout << "error" << std::endl;
             return ERROR;
         }
 
@@ -459,7 +459,7 @@ public:
 
 
 
-      bool isOpen()
+    bool isOpen()
     {
         return serial.isOpen();
     }
@@ -469,8 +469,9 @@ public:
         serial.close();
     }
 
-    QSerialPort serial;
 private:
+
+    QSerialPort serial;
 
     QMutex myMutex;
 

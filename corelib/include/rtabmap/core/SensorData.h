@@ -190,6 +190,9 @@ public:
 	const std::vector<cv::KeyPoint> & keypoints() const {return _keypoints;}
 	const cv::Mat & descriptors() const {return _descriptors;}
 
+    void setPose(Transform pose){_pose = pose; return;}
+    Transform getPose(){return _pose;}
+
 private:
 	int _id;
 	double _stamp;
@@ -214,6 +217,8 @@ private:
 	// features
 	std::vector<cv::KeyPoint> _keypoints;
 	cv::Mat _descriptors;
+
+    Transform _pose; //acquisition pose
 };
 
 }

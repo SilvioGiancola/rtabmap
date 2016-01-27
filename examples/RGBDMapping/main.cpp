@@ -59,7 +59,7 @@ int main(int argc, char * argv[])
 	else
 	{
 		driver = atoi(argv[argc-1]);
-		if(driver < 0 || driver > 4)
+        if(driver < 0 || driver > 5)
 		{
 			UERROR("driver should be between 0 and 4.");
 			showUsage();
@@ -109,6 +109,15 @@ int main(int argc, char * argv[])
 		}
 		camera = new CameraOpenNICV(true, 0, opticalRotation);
 	}
+    else if(driver == 5)
+    {
+        if(!rtabmap::CameraFreenect2::available())
+        {
+            UERROR("Not built with Freenect2 support...");
+            exit(-1);
+        }
+        camera = new rtabmap::CameraFreenect2(0, rtabmap::CameraFreenect2::kTypeColor2DepthSD);
+    }
 	else
 	{
 		camera = new rtabmap::CameraOpenni("", 0, opticalRotation);
