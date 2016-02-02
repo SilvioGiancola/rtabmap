@@ -165,7 +165,8 @@ Transform Odometry::process(const SensorData & data, OdometryInfo * info)
 {
 	if(_pose.isNull())
 	{
-		_pose.setIdentity(); // initialized
+    //	_pose.setIdentity(); // initialized
+        _pose = Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
 	}
 
 	UASSERT(!data.imageRaw().empty());

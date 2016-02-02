@@ -394,7 +394,7 @@ Transform OdometryBOW::computeTransform(
 			{
 				output.setIdentity();
 
-                Transform t = ada;//this->getPose(); // initial pose maybe not identity...
+                Transform t = this->getPose(); // initial pose maybe not identity...
 				for(std::list<int>::iterator iter = uniques.begin(); iter!=uniques.end(); ++iter)
 				{
 					// Only add unique words
