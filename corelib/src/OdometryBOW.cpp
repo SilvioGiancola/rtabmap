@@ -304,7 +304,6 @@ Transform OdometryBOW::computeTransform(
 				{
                     // make it incremental
                     transform = this->getPose().inverse() * t;
-                  //  transform = t;
 				}
 				else if(correspondences < this->getMinInliers())
 				{

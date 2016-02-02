@@ -301,9 +301,6 @@ void RtabmapThread::handleEvent(UEvent* event)
 		CameraEvent * e = (CameraEvent*)event;
 		if(e->getCode() == CameraEvent::kCodeData)
         {
-           // SensorData  data = e->data();
-           // Transform t = data.getPose();
-           // this->addData(OdometryEvent(e->data(), t, 1, 1));
             this->addData(OdometryEvent(e->data(), Transform(), 1, 1));
 		}
 	}
