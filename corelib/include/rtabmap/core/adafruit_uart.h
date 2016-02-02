@@ -237,8 +237,10 @@ public:
 
     Eigen::Quaternionf returnPose()
     {
-        GetQuat(&_currentPose);
-        return Eigen::Quaternionf (_currentPose.matrix() * _calibPose.matrix());
+        if (GetQuat(&_currentPose) == SUCCESS)
+            return Eigen::Quaternionf (_currentPose.matrix() * _calibPose.matrix());
+        else
+            return Eigen::Quaternionf::Identity();
     }
 
 

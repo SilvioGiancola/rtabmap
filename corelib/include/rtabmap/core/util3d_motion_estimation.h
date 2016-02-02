@@ -65,8 +65,7 @@ Transform RTABMAP_EXP estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & 
             double * varianceOut = 0,
             std::vector<int> * matchesOut = 0,
             std::vector<int> * inliersOut = 0,
-            Transform poseA = Transform(),
-            Transform poseB = Transform());
+            Transform guess = Transform());
 
 } // namespace util3d
 } // namespace rtabmap

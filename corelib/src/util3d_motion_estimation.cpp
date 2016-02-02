@@ -187,7 +187,7 @@ Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
             double * varianceOut,
             std::vector<int> * matchesOut,
             std::vector<int> * inliersOut,
-            Transform poseA, Transform poseB)
+            Transform guess)
 {
 	Transform transform;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr inliers1(new pcl::PointCloud<pcl::PointXYZ>); // previous
@@ -205,21 +205,21 @@ Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
 
 
   //  util3d::savePCDWords("/home/silvio/PointClouds/inliers1.pcd", words3A);
-    pcl::io::savePCDFile("/home/silvio/PointClouds/inliers1.pcd", *inliers1);
-    pcl::io::savePCDFile("/home/silvio/PointClouds/inliers2.pcd", *inliers2);
-    std::cout << "Previous Pose " << poseA.prettyPrint() << std::endl;
-    std::cout << "Adafruit Pose " << poseB.prettyPrint() << std::endl;
+   // pcl::io::savePCDFile("/home/silvio/PointClouds/inliers1.pcd", *inliers1);
+   // pcl::io::savePCDFile("/home/silvio/PointClouds/inliers2.pcd", *inliers2);
+  //  std::cout << "Previous Pose " << poseA.prettyPrint() << std::endl;
+  //  std::cout << "Adafruit Pose " << poseB.prettyPrint() << std::endl;
 
 
   //  pcl::PointCloud<pcl::PointXYZ>::Ptr inliers1_rot(new pcl::PointCloud<pcl::PointXYZ>); // previous
   //  pcl::PointCloud<pcl::PointXYZ>::Ptr inliers2_rot(new pcl::PointCloud<pcl::PointXYZ>); // new
 
   //  inliers1 = transformPointCloud(inliers1, poseA);
-    inliers2 = transformPointCloud(inliers2, poseB);
+    inliers2 = transformPointCloud(inliers2, guess);
 
 
-    pcl::io::savePCDFile("/home/silvio/PointClouds/inliers1_rot.pcd", *inliers1);
-    pcl::io::savePCDFile("/home/silvio/PointClouds/inliers2_rot.pcd", *inliers2);
+   // pcl::io::savePCDFile("/home/silvio/PointClouds/inliers1_rot.pcd", *inliers1);
+  //  pcl::io::savePCDFile("/home/silvio/PointClouds/inliers2_rot.pcd", *inliers2);
 
 
     if(varianceOut)
@@ -243,7 +243,7 @@ Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
 
 		if(!t.isNull() && (int)inliers.size() >= minInliers)
 		{
-            transform = t * poseB;
+            transform = t * guess;
 		}
 
 		if(matchesOut)

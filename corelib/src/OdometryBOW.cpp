@@ -173,8 +173,6 @@ OdometryBOW::OdometryBOW(const ParametersMap & parameters) :
 					_fixedLocalMapPath.c_str(), (int)localMap_.size());
 		}
 	}
-    ada = Transform();
-    previous_ada = Transform();
 }
 
 OdometryBOW::~OdometryBOW()
@@ -208,8 +206,7 @@ Transform OdometryBOW::computeTransform(
     Transform output;
 
 
-    previous_ada = ada;
-    ada = Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+    Transform orientationGuess = Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
 
 	if(info)
 	{
@@ -287,8 +284,7 @@ Transform OdometryBOW::computeTransform(
 								&variance,
 								&matches,
                                 &inliers,
-                                previous_ada,
-                                ada);
+                                orientationGuess);
 					}
 					else
 					{

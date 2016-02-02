@@ -68,6 +68,7 @@ public:
 	const Transform & previousTransform() const {return previousTransform_;}
 
     Adafruit_UART * myAda;
+
 private:
 	virtual Transform computeTransform(const SensorData & image, OdometryInfo * info = 0) = 0;
 
@@ -127,8 +128,6 @@ private:
 	Memory * _memory;
 	std::map<int, pcl::PointXYZ> localMap_;
 
-    Transform ada;
-    Transform previous_ada;
 
 };
 

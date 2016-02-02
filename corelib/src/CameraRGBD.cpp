@@ -86,7 +86,6 @@ CameraOpenni::CameraOpenni(const std::string & deviceId, float imageRate, const 
 		deviceId_(deviceId),
 		depthConstant_(0.0f)
 {
-  //  myAda = new Adafruit_UART();
 }
 
 bool CameraOpenni::available() 
@@ -101,8 +100,7 @@ bool CameraOpenni::available()
 CameraOpenni::~CameraOpenni()
 {
 #ifdef HAVE_OPENNI
-	UDEBUG("");
-  //  myAda->close();
+    UDEBUG("");
 	if(connection_.connected())
 	{
 		connection_.disconnect();
@@ -146,8 +144,6 @@ void CameraOpenni::image_cb (
 bool CameraOpenni::init(const std::string & calibrationFolder, const std::string & cameraName)
 {
 #ifdef HAVE_OPENNI
-  //  myAda->open();
-   // myAda->init();
 	if(interface_)
 	{
 		interface_->stop();
@@ -224,8 +220,7 @@ SensorData CameraOpenni::captureImage()
 		}
 		else
 		{
-			UScopeMutex s(dataMutex_);
-         //   Transform myPose = Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+            UScopeMutex s(dataMutex_);
 			if(depthConstant_ && !rgb_.empty() && !depth_.empty())
 			{
 				CameraModel model(
@@ -234,8 +229,7 @@ SensorData CameraOpenni::captureImage()
 						float(rgb_.cols/2) - 0.5f,  //cx
 						float(rgb_.rows/2) - 0.5f,  //cy
 						this->getLocalTransform());
-				data = SensorData(rgb_, depth_, model, this->getNextSeqID(), UTimer::now());
-              //  data.setPose(myPose);
+                data = SensorData(rgb_, depth_, model, this->getNextSeqID(), UTimer::now());
 			}
 
 			depth_ = cv::Mat();
@@ -1128,16 +1122,14 @@ CameraFreenect2::CameraFreenect2(
 	default:
 		listener_ = new libfreenect2::SyncMultiFrameListener(libfreenect2::Frame::Color  | libfreenect2::Frame::Depth);
 		break;
-	}
-  //  myAda = new Adafruit_UART();
+    }
 #endif
 }
 
 CameraFreenect2::~CameraFreenect2()
 {
 #ifdef WITH_FREENECT2
-	UDEBUG("");
-  //  myAda->close();
+    UDEBUG("");
 	if(dev_)
 	{
 		dev_->stop();
@@ -1221,9 +1213,6 @@ bool CameraFreenect2::init(const std::string & calibrationFolder, const std::str
 		dev_->setIrAndDepthFrameListener(listener_);
 
 		dev_->start();
-
-      //  myAda->open();
-      //  myAda->init();
 
 		UINFO("CameraFreenect2: device serial: %s", dev_->getSerialNumber().c_str());
 		UINFO("CameraFreenect2: device firmware: %s", dev_->getFirmwareVersion().c_str());
@@ -1325,19 +1314,7 @@ SensorData CameraFreenect2::captureImage()
 #ifndef LIBFREENECT2_THREADING_STDLIB
 		UDEBUG("Waiting for new frames... If it is stalled here, rtabmap should link on libusb of libfreenect2. "
 				"Tip, before starting rtabmap: \"$ export LD_LIBRARY_PATH=~/libfreenect2/depends/libusb/lib:$LD_LIBRARY_PATH\"");
-        UMutex myMutex;
-
-        myMutex.lock();
         listener_->waitForNewFrame(frames);
-        myMutex.unlock();
-
-        myMutex.lock();
-      //  Eigen::Quaternionf quat = myAda->returnPose();
-        //std::cout << quat.w() << ", " << quat.x() << ", " << quat.y() << ", " << quat.z() << std::endl;
-        //Eigen::Quaternionf quat = Eigen::Quaternionf::Identity();
-       // Transform currentPose = Transform::fromEigen3f(Eigen::Affine3f(quat));
-        myMutex.unlock();
-
 #else
 		if(!listener_->waitForNewFrame(frames, 1000))
 		{
@@ -1674,7 +1651,6 @@ SensorData CameraFreenect2::captureImage()
 						this->getLocalTransform());
             }
             data = SensorData(rgb, depth, model, this->getNextSeqID(), stamp);
-         //   data.setPose(currentPose);
 
 			listener_->release(frames);
 		}
