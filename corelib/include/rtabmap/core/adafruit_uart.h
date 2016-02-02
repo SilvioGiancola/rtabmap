@@ -3,12 +3,13 @@
 /******************/
 /*** ADAFRUIT DRIVERS ***/
 /******************/
-/******************/
+
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 #include <iostream>
 #include <iomanip>
 #include <QTime>
+#include <pcl/common/time.h>
 
 #define SUCCESS 0
 #define ERROR 1
@@ -60,21 +61,22 @@ public:
     float	m_temperature;
 };
 
-class Adafruit_UART// : public QSerialPort
+
+class Adafruit_UART
 {
-    //  Q_OBJECT
 public:
 
     // Constructor
-    explicit Adafruit_UART(QWidget *parent = 0) //: QSerialPort(parent)
+    explicit Adafruit_UART(QWidget *parent = 0)
     {
-        calibPose = Eigen::Quaternionf::Identity();
-        currentPose = Eigen::Quaternionf::Identity();
+        _calibPose = Eigen::Quaternionf::Identity();
+        _currentPose = Eigen::Quaternionf::Identity();
+        _mutex.unlock();
     }
 
 
-    // Open the Serial connection
-    int Open()
+    // Open/Close the Serial connection
+    int open()
     {
         QList < QSerialPortInfo > ava = QSerialPortInfo::availablePorts();
         foreach (const QSerialPortInfo &info, ava )
@@ -112,14 +114,26 @@ public:
         if (!serial.setFlowControl(QSerialPort::NoFlowControl))
             return ERR_FLOWCONTROL;
 
+        serial.setReadBufferSize((qint64)1);
+
         returnPose();
 
         return SUCCESS;
     }
 
+    void close()
+    {
+        serial.close();
+    }
+
+    bool isOpen()
+    {
+        return serial.isOpen();
+    }
+
 
     // Try first communication and initialize the device
-    int Init()
+    int init()
     {
         std::cout << "  --> INIT <--  " << std::endl;
         if ( !isOpen() )
@@ -146,7 +160,7 @@ public:
 
 
         std::cout << "Set REG_SYS_TRIGGER to 20" << std::endl;
-        if ( WriteRegister((quint8) REG_SYS_TRIGGER, (quint8)0x20, true) != SUCCESS )
+        if ( WriteRegister((quint8) REG_SYS_TRIGGER, (quint8)0x20, false) != SUCCESS )
         {
             std::cout << "  -> Error setting REG_SYS_TRIGGER to 20" << std::endl;
             return ERROR;
@@ -208,23 +222,23 @@ public:
 
 
 
-    // Init Calib Pose
+    // Pose Calibration
     Eigen::Quaternionf getCalibPose()
     {
-        return calibPose;
+        return _calibPose;
     }
 
-    void setCalibPose(Eigen::Quaternionf _calibPose)
+    void setCalibPose(Eigen::Quaternionf calibPose)
     {
-        calibPose = _calibPose;
+        _calibPose = calibPose;
         return;
     }
 
 
     Eigen::Quaternionf returnPose()
     {
-        GetQuat(&currentPose);
-        return Eigen::Quaternionf (currentPose.matrix() * calibPose.matrix());
+        GetQuat(&_currentPose);
+        return Eigen::Quaternionf (_currentPose.matrix() * _calibPose.matrix());
     }
 
 
@@ -459,22 +473,7 @@ public:
 
 
 
-    bool isOpen()
-    {
-        return serial.isOpen();
-    }
-
-    void close()
-    {
-        serial.close();
-    }
-
 private:
-
-    QSerialPort serial;
-
-    QMutex myMutex;
-
     void PlotAnswer(QByteArray answer)
     {
 
@@ -496,7 +495,7 @@ private:
         }
         std::cout << std::endl;
         std::cout << std::endl;
-        std::cout << std::endl;
+        std::cout << std::dec << std::endl;
 
         return;
     }
@@ -518,6 +517,9 @@ private:
         }
         return SUCCESS;
     }
+
+
+
 
     // Data Conversion
     Eigen::Vector3f convertQByteArrayInVector3f(QByteArray m_bytearray)
@@ -577,58 +579,28 @@ private:
     }
 
 
-    // Read in the register
+
+    // Read/Write Sensor Register
     int ReadRegister(QByteArray& receive, quint8 reg, quint8 size = 0x01)
     {
-        QMutexLocker lock(&myMutex);
+       // pcl::ScopeTime t("reading-all");
+        QMutexLocker locker(&_mutex);
 
-        //  QThread::usleep(1*1000);
-        int pause = 0;
-        //send a message in hexa
+        //create message in hexa
         char cmdBuf[] = { (char)0xAA,(char)0x01,(char)reg ,(char) size};
         QByteArray data = QByteArray::fromRawData(cmdBuf, sizeof(cmdBuf));
 
-        int timeout= 20;
+
+        write(data);
+
+        receive = read (( static_cast<int16_t>(data[3]) ) + 2);
 
 
-        //empty the buffer
-        //   std::cout << "Buffer was still : " << readAll().size() << std::endl;
-        serial.readAll();
-        serial.clear();
-
-
-        // write the message
-        serial.write(data);
-        if (!serial.waitForBytesWritten(4*timeout))
-            std::cout << "All the byte has not been written!!!" << std::endl;
-
-
-        QThread::usleep(pause*1000);
-
-
-        //QByteArray receive;
-        int excepted_data = ( static_cast<int16_t>(data[3]) ) + 2;
-
-        try
-        {
-            while (receive.size() < excepted_data)
-            {
-                if (!serial.waitForReadyRead(timeout))
-                    break;
-
-                QByteArray partmes = serial.readAll();
-                receive.append(partmes);
-            }
-        }
-        catch(std::exception ex)
-        {
-
-        }
-
+        // Interpret received data
         if ( (quint8) receive[0] == (quint8) 0xEE &&
              (quint8) receive[1] == (quint8) 0x07 )
         {
-            //  std::cout << " overrun error" << std::endl;
+            std::cout << " overrun error" << std::endl;
             return ERROR;
         }
         else if ( !((quint8)receive[0] == (quint8)0xBB) )
@@ -640,48 +612,22 @@ private:
         return SUCCESS;
     }
 
-    // Write in the register
-    int WriteRegister(quint8 reg, quint8 value, bool simple = false)
+    int WriteRegister(quint8 reg, quint8 value, bool requireAnswer = true)
     {
-        int pause = 0;
         //send a message in hexa
         char cmdBuf[] = { (char)0xAA,(char)0x00,(char)reg , (char)0x01, (char) value};
         QByteArray data = QByteArray::fromRawData(cmdBuf, sizeof(cmdBuf));
 
-        int timeout = 1000;
 
+        write(data);
 
-        //empty the buffer
-        // std::cout << "Buffer was still : " << readAll().size() << std::endl;
-        serial.readAll();
-        serial.clear();
-
-        // write the message
-        serial.write(data);
-        if (!serial.waitForBytesWritten(4*timeout))
-            std::cout << "All the byte has not been written!!!" << std::endl;
-
-        if (simple)
+        if (!requireAnswer)
             return SUCCESS;
 
+        QByteArray receive = read (2, 1000);
 
 
-        QThread::usleep(pause*1000);
-
-
-        QByteArray receive;
-        // int excepted_data = ( static_cast<int16_t>(data[3]) ) + 2;
-
-        while (receive.size() < 2)
-        {
-            if (!serial.waitForReadyRead(timeout))
-                break;
-
-            receive.append(serial.readAll());
-        }
-
-        QThread::usleep(pause*1000);
-
+        // Interprete reveived message
         if ( !((receive.size() == 2 ) &&
                ((quint8)receive[0] == (quint8)0xEE) &&
                ((quint8)receive[1] == (quint8)0x01)) )
@@ -694,10 +640,53 @@ private:
         return SUCCESS;
     }
 
-    bool plugged;
 
-    Eigen::Quaternionf calibPose;
-    Eigen::Quaternionf currentPose;
+
+    // Read/Write Serial Port
+    void write(QByteArray data)
+    {
+        // Clear the buffer
+        serial.readAll();
+        if(!serial.clear())
+            std::cout << "didn't clear well" << std::endl;
+
+        // Write the message
+        serial.write(data);
+        if (!serial.waitForBytesWritten(1000))
+            std::cout << "All the byte has not been written!!!" << std::endl;
+
+        return;
+
+    }
+
+    QByteArray read(int excepted_size, int timeout = 20)
+    {
+        QByteArray receive;
+        try
+        {
+            while (receive.size() < excepted_size)
+            {
+                if (!serial.waitForReadyRead(timeout) )
+                    break;
+
+                receive.append(serial.readAll());
+            }
+        }
+        catch(std::exception ex)
+        {
+            std::cout << "Exception in Register Writting : " << ex.what() << std::endl;
+        }
+
+        return receive;
+    }
+
+
+    QSerialPort serial;
+    bool plugged;
+    QMutex _mutex;
+
+    Eigen::Quaternionf _calibPose;
+    Eigen::Quaternionf _currentPose;
 
 };
 

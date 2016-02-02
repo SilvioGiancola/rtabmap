@@ -54,7 +54,7 @@ OdometryBOW::OdometryBOW(const ParametersMap & parameters) :
 	_fixedLocalMapPath(Parameters::defaultOdomBowFixedLocalMapPath()),
 	_memory(0)
 {
-	UDEBUG("");
+    UDEBUG("");
 	Parameters::parse(parameters, Parameters::kOdomBowLocalHistorySize(), _localHistoryMaxSize);
 	Parameters::parse(parameters, Parameters::kOdomBowFixedLocalMapPath(), _fixedLocalMapPath);
 
@@ -173,6 +173,8 @@ OdometryBOW::OdometryBOW(const ParametersMap & parameters) :
 					_fixedLocalMapPath.c_str(), (int)localMap_.size());
 		}
 	}
+    ada = Transform();
+    previous_ada = Transform();
 }
 
 OdometryBOW::~OdometryBOW()
@@ -196,13 +198,18 @@ void OdometryBOW::reset(const Transform & initialPose)
 	}
 }
 
+Transform ada_old;
 // return not null transform if odometry is correctly computed
 Transform OdometryBOW::computeTransform(
 		const SensorData & data,
 		OdometryInfo * info)
 {
-	UTimer timer;
-	Transform output;
+    UTimer timer;
+    Transform output;
+
+
+    previous_ada = ada;
+    ada = Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
 
 	if(info)
 	{
@@ -270,7 +277,7 @@ Transform OdometryBOW::computeTransform(
 					// 3D to 3D
 					if((int)newSignature->getWords3().size() >= this->getMinInliers())
 					{
-						t = util3d::estimateMotion3DTo3D(
+                        t = util3d::estimateMotion3DTo3D(
 								localMap_,
 								uMultimapToMap(newSignature->getWords3()),
 								this->getMinInliers(),
@@ -279,7 +286,9 @@ Transform OdometryBOW::computeTransform(
 								this->getRefineIterations(),
 								&variance,
 								&matches,
-								&inliers);
+                                &inliers,
+                                previous_ada,
+                                ada);
 					}
 					else
 					{
@@ -297,8 +306,9 @@ Transform OdometryBOW::computeTransform(
 
 				if(!t.isNull())
 				{
-					// make it incremental
-					transform = this->getPose().inverse() * t;
+                    // make it incremental
+                    transform = this->getPose().inverse() * t;
+                  //  transform = t;
 				}
 				else if(correspondences < this->getMinInliers())
 				{
@@ -338,7 +348,7 @@ Transform OdometryBOW::computeTransform(
 					}
 				}
 
-				if(_localHistoryMaxSize == 0 && localMap_.size() > 0 && localMap_.size() > newSignature->getWords3().size())
+                if(_localHistoryMaxSize == 0 && localMap_.size() > 0 && localMap_.size() > newSignature->getWords3().size())
 				{
 					UERROR("Local map should have only words of the last added signature here! (size=%d, max history size=%d, newWords=%d)",
 							(int)localMap_.size(), _localHistoryMaxSize, (int)newSignature->getWords3().size());
@@ -376,7 +386,7 @@ Transform OdometryBOW::computeTransform(
 				_memory->deleteLocation(newSignature->id());
 			}
 		}
-		else if(newSignature)
+        else if(newSignature)  // Initial pose
 		{
 			int count = 0;
 			std::list<int> uniques = uUniqueKeys(newSignature->getWords3());
@@ -384,7 +394,7 @@ Transform OdometryBOW::computeTransform(
 			{
 				output.setIdentity();
 
-				Transform t = this->getPose(); // initial pose maybe not identity...
+                Transform t = ada;//this->getPose(); // initial pose maybe not identity...
 				for(std::list<int>::iterator iter = uniques.begin(); iter!=uniques.end(); ++iter)
 				{
 					// Only add unique words
@@ -433,6 +443,8 @@ Transform OdometryBOW::computeTransform(
 			(int)localMap_.size(),
 			(int)_memory->getVWDictionary()->getVisualWords().size(),
 			(int)_memory->getStMem().size());
+
+
 	return output;
 }
 

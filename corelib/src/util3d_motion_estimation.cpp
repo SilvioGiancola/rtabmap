@@ -178,20 +178,21 @@ Transform estimateMotion3DTo2D(
 	return transform;
 }
 
-Transform estimateMotion3DTo3D(
-			const std::map<int, pcl::PointXYZ> & words3A,
-			const std::map<int, pcl::PointXYZ> & words3B,
-			int minInliers,
-			double inliersDistance,
-			int iterations,
-			int refineIterations,
-			double * varianceOut,
-			std::vector<int> * matchesOut,
-			std::vector<int> * inliersOut)
+Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
+            const std::map<int, pcl::PointXYZ> & words3B,
+            int minInliers,
+            double inliersDistance,
+            int iterations,
+            int refineIterations,
+            double * varianceOut,
+            std::vector<int> * matchesOut,
+            std::vector<int> * inliersOut,
+            Transform poseA, Transform poseB)
 {
 	Transform transform;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr inliers1(new pcl::PointCloud<pcl::PointXYZ>); // previous
 	pcl::PointCloud<pcl::PointXYZ>::Ptr inliers2(new pcl::PointCloud<pcl::PointXYZ>); // new
+
 
 	std::vector<int> matches;
 	util3d::findCorrespondences(
@@ -202,7 +203,26 @@ Transform estimateMotion3DTo3D(
 			0,
 			&matches);
 
-	if(varianceOut)
+
+  //  util3d::savePCDWords("/home/silvio/PointClouds/inliers1.pcd", words3A);
+    pcl::io::savePCDFile("/home/silvio/PointClouds/inliers1.pcd", *inliers1);
+    pcl::io::savePCDFile("/home/silvio/PointClouds/inliers2.pcd", *inliers2);
+    std::cout << "Previous Pose " << poseA.prettyPrint() << std::endl;
+    std::cout << "Adafruit Pose " << poseB.prettyPrint() << std::endl;
+
+
+  //  pcl::PointCloud<pcl::PointXYZ>::Ptr inliers1_rot(new pcl::PointCloud<pcl::PointXYZ>); // previous
+  //  pcl::PointCloud<pcl::PointXYZ>::Ptr inliers2_rot(new pcl::PointCloud<pcl::PointXYZ>); // new
+
+  //  inliers1 = transformPointCloud(inliers1, poseA);
+    inliers2 = transformPointCloud(inliers2, poseB);
+
+
+    pcl::io::savePCDFile("/home/silvio/PointClouds/inliers1_rot.pcd", *inliers1);
+    pcl::io::savePCDFile("/home/silvio/PointClouds/inliers2_rot.pcd", *inliers2);
+
+
+    if(varianceOut)
 	{
 		*varianceOut = 1.0;
 	}
@@ -211,19 +231,19 @@ Transform estimateMotion3DTo3D(
 	{
 		std::vector<int> inliers;
 		Transform t = util3d::transformFromXYZCorrespondences(
-				inliers2,
-				inliers1,
+                inliers2,
+                inliers1,
 				inliersDistance,
 				iterations,
 				refineIterations>0,
 				3.0,
 				refineIterations,
 				&inliers,
-				varianceOut);
+                varianceOut);
 
 		if(!t.isNull() && (int)inliers.size() >= minInliers)
 		{
-			transform = t;
+            transform = t * poseB;
 		}
 
 		if(matchesOut)

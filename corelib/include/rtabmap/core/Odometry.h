@@ -36,6 +36,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 
+#include <rtabmap/core/adafruit_uart.h>
+
 class UTimer;
 
 namespace rtabmap {
@@ -65,6 +67,7 @@ public:
 	int  getPnPFlags() const {return _pnpFlags;}
 	const Transform & previousTransform() const {return previousTransform_;}
 
+    Adafruit_UART * myAda;
 private:
 	virtual Transform computeTransform(const SensorData & image, OdometryInfo * info = 0) = 0;
 
@@ -123,6 +126,10 @@ private:
 
 	Memory * _memory;
 	std::map<int, pcl::PointXYZ> localMap_;
+
+    Transform ada;
+    Transform previous_ada;
+
 };
 
 class RTABMAP_EXP OdometryOpticalFlow : public Odometry

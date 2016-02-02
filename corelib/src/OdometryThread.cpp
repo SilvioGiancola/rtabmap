@@ -99,7 +99,7 @@ void OdometryThread::mainLoop()
 		Transform pose = _odometry->process(data, &info);
 		// a null pose notify that odometry could not be computed
 		double variance = info.variance>0?info.variance:1;
-		this->post(new OdometryEvent(data, pose, variance, variance, info));
+        this->post(new OdometryEvent(data, pose, variance, variance, info));
 	}
 }
 

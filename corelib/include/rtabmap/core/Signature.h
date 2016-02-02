@@ -119,6 +119,9 @@ public:
 	SensorData & sensorData() {return _sensorData;}
 	const SensorData & sensorData() const {return _sensorData;}
 
+
+    const Transform & getSensorPose() const {SensorData d = _sensorData; return d.getPose();}
+
 private:
 	int _id;
 	int _mapId;

@@ -191,7 +191,7 @@ public:
 	const cv::Mat & descriptors() const {return _descriptors;}
 
     void setPose(Transform pose){_pose = pose; return;}
-    Transform getPose(){return _pose;}
+    const Transform getPose() const {return _pose;}
 
 private:
 	int _id;

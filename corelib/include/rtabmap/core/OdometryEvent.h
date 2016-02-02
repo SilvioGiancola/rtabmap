@@ -63,7 +63,7 @@ public:
 		const cv::Mat & covariance = cv::Mat::eye(6,6,CV_64FC1),
 		const OdometryInfo & info = OdometryInfo()) :
 			_data(data),
-			_pose(pose),
+            _pose(pose),
 			_info(info)
 	{
 		UASSERT(covariance.cols == 6 && covariance.rows == 6 && covariance.type() == CV_64FC1);

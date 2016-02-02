@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
 #include <rtabmap/core/Transform.h>
 #include <rtabmap/core/CameraModel.h>
 
@@ -55,16 +56,17 @@ Transform RTABMAP_EXP estimateMotion3DTo2D(
 			std::vector<int> * matchesOut = 0,
 			std::vector<int> * inliersOut = 0);
 
-Transform RTABMAP_EXP estimateMotion3DTo3D(
-			const std::map<int, pcl::PointXYZ> & words3A,
-			const std::map<int, pcl::PointXYZ> & words3B,
-			int minInliers = 10,
-			double inliersDistance = 0.1,
-			int iterations = 100,
-			int refineIterations = 5,
-			double * varianceOut = 0,
-			std::vector<int> * matchesOut = 0,
-			std::vector<int> * inliersOut = 0);
+Transform RTABMAP_EXP estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
+            const std::map<int, pcl::PointXYZ> & words3B,
+            int minInliers = 10,
+            double inliersDistance = 0.1,
+            int iterations = 100,
+            int refineIterations = 5,
+            double * varianceOut = 0,
+            std::vector<int> * matchesOut = 0,
+            std::vector<int> * inliersOut = 0,
+            Transform poseA = Transform(),
+            Transform poseB = Transform());
 
 } // namespace util3d
 } // namespace rtabmap

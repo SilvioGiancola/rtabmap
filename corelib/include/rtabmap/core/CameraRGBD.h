@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/signals2/connection.hpp>
 
-#include <rtabmap/core/adafruit_uart.h>
+//#include <rtabmap/core/adafruit_uart.h>
 
 namespace openni
 {
@@ -105,6 +105,7 @@ private:
     float depthConstant_;
     UMutex dataMutex_;
     USemaphore dataReady_;
+   // Adafruit_UART * myAda;
 };
 
 /////////////////////////
@@ -261,7 +262,7 @@ private:
 	bool bilateralFiltering_;
 	bool edgeAwareFiltering_;
 	bool noiseFiltering_;
-    Adafruit_UART * myAda;
+   // Adafruit_UART * myAda;
 };
 
 

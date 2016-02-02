@@ -100,6 +100,10 @@ Odometry::Odometry(const rtabmap::ParametersMap & parameters) :
 			}
 		}
 	}
+
+    myAda = new Adafruit_UART();
+    myAda->open();
+    myAda->init();
 }
 
 Odometry::~Odometry()
@@ -109,6 +113,7 @@ Odometry::~Odometry()
 		delete filters_[i];
 	}
 	filters_.clear();
+    myAda->close();
 }
 
 void Odometry::reset(const Transform & initialPose)

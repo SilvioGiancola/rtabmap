@@ -565,7 +565,7 @@ bool Memory::update(
 		const SensorData & data,
 		Statistics * stats)
 {
-	return update(data, Transform(), cv::Mat(), stats);
+    return update(data, Transform(), cv::Mat(), stats);
 }
 
 bool Memory::update(
@@ -591,8 +591,9 @@ bool Memory::update(
 
 	//============================================================
 	// Create a signature with the image received.
-	//============================================================
-	Signature * signature = this->createSignature(data, pose, stats);
+    //============================================================
+    Signature * signature = this->createSignature(data, pose, stats);
+  //  signature->setPose(data.getPose());
 	if (signature == 0)
 	{
 		UERROR("Failed to create a signature...");
@@ -726,8 +727,8 @@ void Memory::addSignatureToStm(Signature * signature, const cv::Mat & covariance
 			if(_signatures.at(*_stMem.rbegin())->mapId() == signature->mapId())
 			{
 				Transform motionEstimate;
-				if(!signature->getPose().isNull() &&
-				   !_signatures.at(*_stMem.rbegin())->getPose().isNull())
+                if(!signature->getPose().isNull() &&
+                   !_signatures.at(*_stMem.rbegin())->getPose().isNull())
 				{
 					cv::Mat infMatrix = covariance.inv();
 					motionEstimate = _signatures.at(*_stMem.rbegin())->getPose().inverse() * signature->getPose();
