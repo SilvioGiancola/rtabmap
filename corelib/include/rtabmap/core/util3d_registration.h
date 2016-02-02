@@ -32,6 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/common/common.h>
+#include <pcl/common/geometry.h>
 #include <rtabmap/core/Transform.h>
 #include <opencv2/core/core.hpp>
 
@@ -53,7 +55,7 @@ Transform RTABMAP_EXP transformFromXYZCorrespondences(const pcl::PointCloud<pcl:
         double refineModelSigma = 3.0,
         int refineModelIterations = 10,
         std::vector<int> * inliers = 0,
-        double * variance = 0);
+        double * variance = 0, bool transonly = false);
 
 void RTABMAP_EXP computeVarianceAndCorrespondences(
 		const pcl::PointCloud<pcl::PointNormal>::ConstPtr & cloudA,

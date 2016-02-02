@@ -55,7 +55,8 @@ Transform transformFromXYZCorrespondences(
 		double refineModelSigma,
 		int refineModelIterations,
 		std::vector<int> * inliersOut,
-        double * varianceOut)
+        double * varianceOut,
+        bool transonly)
 {
 	//NOTE: this method is a mix of two methods:
 	//  - getRemainingCorrespondences() in pcl/registration/impl/correspondence_rejection_sample_consensus.hpp
@@ -67,8 +68,8 @@ Transform transformFromXYZCorrespondences(
 	}
 	Transform transform;
 	if(cloud1->size() >=3 && cloud1->size() == cloud2->size())
-	{
-      //  pcl::ScopeTime t("Ransac-All");
+    {
+        pcl::ScopeTime t("RANSAC");
 		// RANSAC
 		UDEBUG("iterations=%d inlierThreshold=%f", iterations, inlierThreshold);
 		std::vector<int> source_indices (cloud2->size());
@@ -80,6 +81,7 @@ Transform transformFromXYZCorrespondences(
         pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
 		for (int i = 0; i < (int)cloud1->size(); ++i)
 		{
+
             pcl::PointXYZ p1 = cloud1->at(i);
             pcl::PointXYZ p2 = cloud2->at(i);
             Eigen::Vector3f diff = Eigen::Vector3f(p1.x-p2.x,p1.y-p2.y,p1.z-p2.z) ;
@@ -94,15 +96,18 @@ Transform transformFromXYZCorrespondences(
 
         std::nth_element(dists.begin(), dists.begin(), dists.end());
         std::cout << "The median is " << dists[dists.size()/2] << '\n';
-        std::cout << "we have " << correspondences->size() << " correspondences" << std::endl;
+      //  std::cout << "we have " << correspondences->size() << " correspondences" << std::endl;
 
 
 		// From the set of correspondences found, attempt to remove outliers
         // Create the registration model
         pcl::SampleConsensusModelRegistration<pcl::PointXYZ>::Ptr model;
-        model.reset(new pcl::SampleConsensusModelRegistration<pcl::PointXYZ>(cloud2, source_indices));
-      //  pcl::SampleConsensusModelRegistrationTranslation<pcl::PointXYZ>::Ptr model;
-     //   model.reset(new pcl::SampleConsensusModelRegistrationTranslation<pcl::PointXYZ>(cloud2, source_indices));
+        if (transonly)
+            model.reset(new pcl::SampleConsensusModelRegistrationTranslation<pcl::PointXYZ>(cloud2, source_indices));
+        else
+            model.reset(new pcl::SampleConsensusModelRegistration<pcl::PointXYZ>(cloud2, source_indices));
+
+
 		// Pass the target_indices
 		model->setInputTarget (cloud1, target_indices);
 		// Create a RANSAC model
@@ -111,8 +116,7 @@ Transform transformFromXYZCorrespondences(
 
 		// Compute the set of inliers
 		if(sac.computeModel())
-		{
-         //   pcl::ScopeTime t("  -> Ransac-refine");
+        {
 			std::vector<int> inliers;
 			Eigen::VectorXf model_coefficients;
 
@@ -120,7 +124,8 @@ Transform transformFromXYZCorrespondences(
 			sac.getModelCoefficients (model_coefficients);
 
 			if (refineModel)
-			{
+            {
+                pcl::ScopeTime t("RANSAC-refine");
 				double inlier_distance_threshold_sqr = inlierThreshold * inlierThreshold;
 				double error_threshold = inlierThreshold;
 				double sigma_sqr = refineModelSigma * refineModelSigma;
@@ -225,11 +230,9 @@ Transform transformFromXYZCorrespondences(
 				transform = Transform::fromEigen4f(bestTransformation);
 				UDEBUG("RANSAC inliers=%d/%d tf=%s", (int)inliers.size(), (int)cloud1->size(), transform.prettyPrint().c_str());
 
-               std::cout << "Result is : " << std::endl << transform.prettyPrint() << std::endl;
-
-				return transform.inverse(); // inverse to get actual pose transform (not correspondences transform)
+                return transform.inverse(); // inverse to get actual pose transform (not correspondences transform)
 			}
-			else
+            else
 			{
 				UDEBUG("RANSAC: Model with inliers < 3");
 			}

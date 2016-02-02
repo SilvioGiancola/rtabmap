@@ -187,7 +187,7 @@ Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
             double * varianceOut,
             std::vector<int> * matchesOut,
             std::vector<int> * inliersOut,
-            Transform guess)
+            Transform initialGuess)
 {
 	Transform transform;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr inliers1(new pcl::PointCloud<pcl::PointXYZ>); // previous
@@ -204,22 +204,18 @@ Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
 			&matches);
 
 
-  //  util3d::savePCDWords("/home/silvio/PointClouds/inliers1.pcd", words3A);
-   // pcl::io::savePCDFile("/home/silvio/PointClouds/inliers1.pcd", *inliers1);
-   // pcl::io::savePCDFile("/home/silvio/PointClouds/inliers2.pcd", *inliers2);
-  //  std::cout << "Previous Pose " << poseA.prettyPrint() << std::endl;
-  //  std::cout << "Adafruit Pose " << poseB.prettyPrint() << std::endl;
+    // Save original point cloud for various checks
+    // pcl::io::savePCDFile("/home/silvio/PointClouds/inliers1.pcd", *inliers1);
+    // pcl::io::savePCDFile("/home/silvio/PointClouds/inliers2.pcd", *inliers2);
 
+    bool useInitialGuess = !initialGuess.isIdentity() && !initialGuess.isNull();
 
-  //  pcl::PointCloud<pcl::PointXYZ>::Ptr inliers1_rot(new pcl::PointCloud<pcl::PointXYZ>); // previous
-  //  pcl::PointCloud<pcl::PointXYZ>::Ptr inliers2_rot(new pcl::PointCloud<pcl::PointXYZ>); // new
+    if (useInitialGuess)
+        inliers2 = transformPointCloud(inliers2, initialGuess);
 
-  //  inliers1 = transformPointCloud(inliers1, poseA);
-    inliers2 = transformPointCloud(inliers2, guess);
-
-
-   // pcl::io::savePCDFile("/home/silvio/PointClouds/inliers1_rot.pcd", *inliers1);
-  //  pcl::io::savePCDFile("/home/silvio/PointClouds/inliers2_rot.pcd", *inliers2);
+    // Save prealigned point cloud for various checks (inliers1 remained the same)
+    // pcl::io::savePCDFile("/home/silvio/PointClouds/inliers1_rot.pcd", *inliers1);
+    // pcl::io::savePCDFile("/home/silvio/PointClouds/inliers2_rot.pcd", *inliers2);
 
 
     if(varianceOut)
@@ -239,11 +235,14 @@ Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
 				3.0,
 				refineIterations,
 				&inliers,
-                varianceOut);
+                varianceOut,
+                useInitialGuess);
 
 		if(!t.isNull() && (int)inliers.size() >= minInliers)
 		{
-            transform = t * guess;
+            if (useInitialGuess)
+                t = t * initialGuess;
+            transform = t;
 		}
 
 		if(matchesOut)

@@ -163,6 +163,7 @@ void Odometry::reset(const Transform & initialPose)
 
 Transform Odometry::process(const SensorData & data, OdometryInfo * info)
 {
+    pcl::ScopeTime pcltime ("Odometry");
 	if(_pose.isNull())
 	{
     //	_pose.setIdentity(); // initialized

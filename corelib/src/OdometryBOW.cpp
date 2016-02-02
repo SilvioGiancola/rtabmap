@@ -206,7 +206,10 @@ Transform OdometryBOW::computeTransform(
     Transform output;
 
 
-    Transform orientationGuess = Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+    Transform transformationGuess;
+    if(myAda->isOpen())
+        transformationGuess = this->getPose().translation() * Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+
 
 	if(info)
 	{
@@ -284,7 +287,7 @@ Transform OdometryBOW::computeTransform(
 								&variance,
 								&matches,
                                 &inliers,
-                                orientationGuess);
+                                transformationGuess);
 					}
 					else
 					{
