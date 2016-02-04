@@ -196,7 +196,6 @@ void OdometryBOW::reset(const Transform & initialPose)
 	}
 }
 
-Transform ada_old;
 // return not null transform if odometry is correctly computed
 Transform OdometryBOW::computeTransform(
 		const SensorData & data,
@@ -223,7 +222,7 @@ Transform OdometryBOW::computeTransform(
 
 	if(_memory->update(data))
 	{
-		const Signature * newSignature = _memory->getLastWorkingSignature();
+        const Signature * newSignature = _memory->getLastWorkingSignature();
 		if(newSignature)
 		{
 			nFeatures = (int)newSignature->getWords().size();
@@ -293,7 +292,7 @@ Transform OdometryBOW::computeTransform(
 					{
 						UWARN("Not enough 3D features in the new image (%d < %d)", (int)newSignature->getWords3().size(), this->getMinInliers());
 					}
-				}
+                }
 
 				correspondences = matches.size();
 				inliersCount = inliers.size();

@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "rtabmap/utilite/UStl.h"
 #include "rtabmap/utilite/UMath.h"
 #include "rtabmap/utilite/ULogger.h"
+#include "rtabmap/utilite/UTimer.h"
 #include "rtabmap/core/util3d_transforms.h"
 #include "rtabmap/core/util3d_registration.h"
 #include "rtabmap/core/util3d_correspondences.h"
@@ -189,7 +190,9 @@ Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
             std::vector<int> * inliersOut,
             Transform initialGuess)
 {
-	Transform transform;
+    UTimer timer;
+
+    Transform transform;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr inliers1(new pcl::PointCloud<pcl::PointXYZ>); // previous
 	pcl::PointCloud<pcl::PointXYZ>::Ptr inliers2(new pcl::PointCloud<pcl::PointXYZ>); // new
 
@@ -203,6 +206,7 @@ Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
 			0,
 			&matches);
 
+    std::cout << "findCorrespondences:" << timer.elapsed() << std::endl;
 
     // Save original point cloud for various checks
     // pcl::io::savePCDFile("/home/silvio/PointClouds/inliers1.pcd", *inliers1);
@@ -238,6 +242,7 @@ Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
                 varianceOut,
                 useInitialGuess);
 
+        std::cout << "transform:" << timer.elapsed() << std::endl;
 		if(!t.isNull() && (int)inliers.size() >= minInliers)
 		{
             if (useInitialGuess)
