@@ -211,14 +211,14 @@ private:
 class RTABMAP_EXP OdometryICP : public Odometry
 {
 public:
-	OdometryICP(int decimation = 4,
+    OdometryICP(int decimation = 4,
 			float voxelSize = 0.005f,
 			int samples = 0,
 			float maxCorrespondenceDistance = 0.05f,
 			int maxIterations = 30,
 			float correspondenceRatio = 0.7f,
-			bool pointToPlane = true,
-			const ParametersMap & odometryParameter = rtabmap::ParametersMap());
+            bool pointToPlane = true,
+            const ParametersMap & odometryParameter = rtabmap::ParametersMap());
 	virtual void reset(const Transform & initialPose = Transform::getIdentity());
 
 private:

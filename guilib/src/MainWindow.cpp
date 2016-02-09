@@ -2976,11 +2976,23 @@ void MainWindow::startDetection()
 				if(_preferencesDialog->getOdomStrategy() == 1)
 				{
 					odom = new OdometryOpticalFlow(parameters);
-				}
-				else if(_preferencesDialog->getOdomStrategy() == 2)
-				{
-					odom = new OdometryMono(parameters);
-				}
+                }
+                else if(_preferencesDialog->getOdomStrategy() == 2)
+                {
+                    odom = new OdometryMono(parameters);
+                }
+                else if(_preferencesDialog->getOdomStrategy() == 3)
+                {
+                    float distance = rtabmap::Parameters::defaultOdomInlierDistance();
+                    int iterations = rtabmap::Parameters::defaultOdomIterations();
+                    int decimation = 4;
+                    float voxel = 0.005;
+                    int samples = 10000;
+                    float ratio = 0.7f;
+                    bool p2p = false;
+
+                    odom = new OdometryICP(decimation, voxel, samples, distance, iterations, ratio, !p2p);
+                }
 				else
 				{
 					odom = new OdometryBOW(parameters);
@@ -3014,14 +3026,25 @@ void MainWindow::startDetection()
 			if(_preferencesDialog->getOdomStrategy() == 1)
 			{
 				odom = new OdometryOpticalFlow(parameters);
-			}
-			else if(_preferencesDialog->getOdomStrategy() == 2)
-			{
-				odom = new OdometryMono(parameters);
-			}
+            }
+            else if(_preferencesDialog->getOdomStrategy() == 2)
+            {
+                odom = new OdometryMono(parameters);
+            }
+            else if(_preferencesDialog->getOdomStrategy() == 3)
+            {
+                float distance = rtabmap::Parameters::defaultOdomInlierDistance();
+                int iterations = rtabmap::Parameters::defaultOdomIterations();
+                int decimation = 4;
+                float voxel = 0.005;
+                int samples = 10000;
+                float ratio = 0.7f;
+                bool p2p = false;
+                odom = new OdometryICP(decimation, voxel, samples, distance, iterations, ratio, !p2p);
+            }
 			else
-			{
-				odom = new OdometryBOW(parameters);
+            {
+                odom = new OdometryBOW(parameters);
 			}
 			_odomThread = new OdometryThread(odom, _preferencesDialog->getOdomBufferSize());
 

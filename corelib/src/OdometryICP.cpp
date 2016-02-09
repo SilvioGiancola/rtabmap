@@ -41,8 +41,8 @@ OdometryICP::OdometryICP(int decimation,
 		float maxCorrespondenceDistance,
 		int maxIterations,
 		float correspondenceRatio,
-		bool pointToPlane,
-		const ParametersMap & odometryParameter) :
+        bool pointToPlane,
+        const ParametersMap & odometryParameter) :
 	Odometry(odometryParameter),
 	_decimation(decimation),
 	_voxelSize(voxelSize),

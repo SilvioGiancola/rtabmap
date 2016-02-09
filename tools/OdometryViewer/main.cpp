@@ -693,7 +693,7 @@ int main (int argc, char * argv[])
 		UINFO("Cloud correspondence ratio = %f", ratio);
 		UINFO("Cloud point to plane =    %s", p2p?"false":"true");
 
-		odom = new rtabmap::OdometryICP(decimation, voxel, samples, distance, iterations, ratio, !p2p);
+        odom = new rtabmap::OdometryICP(decimation, voxel, samples, distance, iterations, ratio, !p2p);
 	}
 
 	rtabmap::OdometryThread odomThread(odom);
