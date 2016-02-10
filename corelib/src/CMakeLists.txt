@@ -50,6 +50,7 @@ SET(SRC_FILES
 	OdometryOpticalFlow.cpp
 	OdometryMono.cpp
 	OdometryICP.cpp
+	OdometryCustom.cpp
 	
 	toro3d/posegraph3.cpp
 	toro3d/treeoptimizer3_iteration.cpp

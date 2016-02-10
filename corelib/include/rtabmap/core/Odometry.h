@@ -237,5 +237,29 @@ private:
 	pcl::PointCloud<pcl::PointXYZ>::Ptr _previousCloud; // for point to point
 };
 
+class RTABMAP_EXP OdometryCustom : public Odometry
+{
+public:
+    OdometryCustom(const rtabmap::ParametersMap & parameters = rtabmap::ParametersMap());
+    virtual ~OdometryCustom();
+
+    virtual void reset(const Transform & initialPose = Transform::getIdentity());
+    const std::map<int, pcl::PointXYZ> & getLocalMap() const {return localMap_;}
+    const Memory * getMemory() const {return _memory;}
+
+private:
+    virtual Transform computeTransform(const SensorData & image, OdometryInfo * info = 0);
+
+private:
+    //Parameters
+    int _localHistoryMaxSize;
+    std::string _fixedLocalMapPath;
+
+    Memory * _memory;
+    std::map<int, pcl::PointXYZ> localMap_;
+
+
+};
+
 } /* namespace rtabmap */
 #endif /* ODOMETRY_H_ */

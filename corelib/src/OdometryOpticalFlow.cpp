@@ -40,6 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+#include <pcl/io/pcd_io.h>
 
 namespace rtabmap {
 
@@ -383,24 +384,51 @@ Transform OdometryOpticalFlow::computeTransform(
 				{
 					std::vector<int> inliersV;
 					UTimer timerRANSAC;
-					Transform t = util3d::transformFromXYZCorrespondences(
-							correspondencesNew,
-							correspondencesRef,
-							this->getInlierDistance(),
-							this->getIterations(),
-							this->getRefineIterations()>0, 3.0, this->getRefineIterations(),
-							&inliersV,
-							&variance);
-					UDEBUG("time RANSAC = %fs", timerRANSAC.ticks());
+                    Transform initialGuess;
+                    if(myAda->isOpen())
+                    {
+                        Transform currentPose = this->getPose();
+                        std::cout << "currentPose:" << currentPose.prettyPrint() << std::endl;
 
-					inliers = (int)inliersV.size();
-					if(!t.isNull() && inliers >= this->getMinInliers())
-					{
-						output = t;
-					}
-					else
-					{
-						UWARN("Transform not valid (inliers = %d/%d)", inliers, correspondences);
+                        Transform AdaFruitPose = Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+                        std::cout << "AdaFruitPose:" << AdaFruitPose.prettyPrint() << std::endl;
+
+                        initialGuess = currentPose.translation() * AdaFruitPose;
+                        std::cout << "initialGuess:" << initialGuess.prettyPrint() << std::endl;
+
+                        correspondencesNew = util3d::transformPointCloud(correspondencesNew, initialGuess);
+                       // correspondencesRef = util3d::transformPointCloud(correspondencesNew, this->getPose());
+                     }
+
+                    pcl::io::savePCDFile("/home/silvio/New.pcd", *correspondencesNew);
+                    pcl::io::savePCDFile("/home/silvio/Ref.pcd", *correspondencesRef);
+
+
+
+					Transform t = util3d::transformFromXYZCorrespondences(
+                                correspondencesNew,
+                                correspondencesRef,
+                                this->getInlierDistance(),
+                                this->getIterations(),
+                                this->getRefineIterations()>0, 3.0, this->getRefineIterations(),
+                                &inliersV,
+                                &variance,
+                                myAda->isOpen());
+                    UDEBUG("time RANSAC = %fs", timerRANSAC.ticks());
+
+                    std::cout << "result:" << t.prettyPrint() << std::endl << std::endl;
+
+                    inliers = (int)inliersV.size();
+                    if(!t.isNull() && inliers >= this->getMinInliers())
+                    {
+                        if(myAda->isOpen())
+                            output = this->getPose().inverse() * t * initialGuess;
+                        else
+                            output = t;
+                    }
+                    else
+                    {
+                        UWARN("Transform not valid (inliers = %d/%d)", inliers, correspondences);
 					}
 
 					if(this->isInfoDataFilled() && info)

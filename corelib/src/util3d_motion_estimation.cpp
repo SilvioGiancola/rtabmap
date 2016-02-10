@@ -196,7 +196,6 @@ Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
 	pcl::PointCloud<pcl::PointXYZ>::Ptr inliers1(new pcl::PointCloud<pcl::PointXYZ>); // previous
 	pcl::PointCloud<pcl::PointXYZ>::Ptr inliers2(new pcl::PointCloud<pcl::PointXYZ>); // new
 
-
 	std::vector<int> matches;
 	util3d::findCorrespondences(
 			words3A,

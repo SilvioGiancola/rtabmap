@@ -3948,14 +3948,7 @@ void PreferencesDialog::testOdometry(int type)
     }
     else if(this->getOdomStrategy() == 3)
     {
-        float distance = rtabmap::Parameters::defaultOdomInlierDistance();
-        int iterations = rtabmap::Parameters::defaultOdomIterations();
-        int decimation = 4;
-        float voxel = 0.005;
-        int samples = 10000;
-        float ratio = 0.7f;
-        bool p2p = false;
-        odometry = new OdometryICP(decimation, voxel, samples, distance, iterations, ratio, !p2p);
+        odometry = new OdometryCustom(parameters);
     }
 	else
 	{
