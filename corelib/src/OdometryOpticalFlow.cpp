@@ -388,20 +388,18 @@ Transform OdometryOpticalFlow::computeTransform(
                     if(myAda->isOpen())
                     {
                         Transform currentPose = this->getPose();
-                        std::cout << "currentPose:" << currentPose.prettyPrint() << std::endl;
+                       // std::cout << "currentPose:" << currentPose.prettyPrint() << std::endl;
 
                         Transform AdaFruitPose = Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
-                        std::cout << "AdaFruitPose:" << AdaFruitPose.prettyPrint() << std::endl;
+                       // std::cout << "AdaFruitPose:" << AdaFruitPose.prettyPrint() << std::endl;
 
                         initialGuess = currentPose.translation() * AdaFruitPose;
-                        std::cout << "initialGuess:" << initialGuess.prettyPrint() << std::endl;
+                       // std::cout << "initialGuess:" << initialGuess.prettyPrint() << std::endl;
 
                         correspondencesNew = util3d::transformPointCloud(correspondencesNew, initialGuess);
                        // correspondencesRef = util3d::transformPointCloud(correspondencesNew, this->getPose());
                      }
 
-                    pcl::io::savePCDFile("/home/silvio/New.pcd", *correspondencesNew);
-                    pcl::io::savePCDFile("/home/silvio/Ref.pcd", *correspondencesRef);
 
 
 
@@ -416,13 +414,13 @@ Transform OdometryOpticalFlow::computeTransform(
                                 myAda->isOpen());
                     UDEBUG("time RANSAC = %fs", timerRANSAC.ticks());
 
-                    std::cout << "result:" << t.prettyPrint() << std::endl << std::endl;
+                  //  std::cout << "result:" << t.prettyPrint() << std::endl << std::endl;
 
                     inliers = (int)inliersV.size();
                     if(!t.isNull() && inliers >= this->getMinInliers())
                     {
                         if(myAda->isOpen())
-                            output = this->getPose().inverse() * t * initialGuess;
+                            output = t * initialGuess;
                         else
                             output = t;
                     }

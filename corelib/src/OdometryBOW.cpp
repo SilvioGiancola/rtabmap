@@ -205,9 +205,7 @@ Transform OdometryBOW::computeTransform(
     Transform output;
 
 
-    Transform transformationGuess;
-    if(myAda->isOpen())
-        transformationGuess = this->getPose().translation() * Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+
 
 
 	if(info)
@@ -252,7 +250,11 @@ Transform OdometryBOW::computeTransform(
 						const CameraModel & cameraModel = data.stereoCameraModel().isValid()?data.stereoCameraModel().left():data.cameraModels()[0];
 
 						UDEBUG("");
-						t = util3d::estimateMotion3DTo2D(
+                        Transform transformationGuess = this->getPose();
+                        if(myAda->isOpen())
+                            transformationGuess = this->getPose().translation() * Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+
+                        t = util3d::estimateMotion3DTo2D(
 								localMap_,
 								uMultimapToMap(newSignature->getWords()),
 								cameraModel,
@@ -260,7 +262,7 @@ Transform OdometryBOW::computeTransform(
 								this->getIterations(),
 								this->getPnPReprojError(),
 								this->getPnPFlags(),
-								this->getPose(),
+                                transformationGuess,
 								uMultimapToMap(newSignature->getWords3()),
 								&variance,
 								&matches,
@@ -276,6 +278,9 @@ Transform OdometryBOW::computeTransform(
 					// 3D to 3D
 					if((int)newSignature->getWords3().size() >= this->getMinInliers())
 					{
+                        Transform transformationGuess;
+                        if(myAda->isOpen())
+                            transformationGuess = this->getPose().translation() * Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
                         t = util3d::estimateMotion3DTo3D(
 								localMap_,
 								uMultimapToMap(newSignature->getWords3()),

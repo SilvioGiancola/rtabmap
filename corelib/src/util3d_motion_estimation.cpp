@@ -205,7 +205,7 @@ Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
 			0,
 			&matches);
 
-    std::cout << "findCorrespondences:" << timer.elapsed() << std::endl;
+   // std::cout << "findCorrespondences:" << timer.elapsed() << std::endl;
 
     // Save original point cloud for various checks
     // pcl::io::savePCDFile("/home/silvio/PointClouds/inliers1.pcd", *inliers1);
@@ -241,7 +241,7 @@ Transform estimateMotion3DTo3D(const std::map<int, pcl::PointXYZ> & words3A,
                 varianceOut,
                 useInitialGuess);
 
-        std::cout << "transform:" << timer.elapsed() << std::endl;
+       // std::cout << "transform:" << timer.elapsed() << std::endl;
 		if(!t.isNull() && (int)inliers.size() >= minInliers)
 		{
             if (useInitialGuess)
