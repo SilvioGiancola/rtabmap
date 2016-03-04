@@ -132,7 +132,7 @@ option(WITH_GTSAM         "Include GTSAM support"                ON)
 option(WITH_CVSBA         "Include cvsba support"                ON)
 option(WITH_FLYCAPTURE2   "Include FlyCapture2/Triclops support" ON)
 
-FIND_PACKAGE(OpenCV REQUIRED QUIET)
+FIND_PACKAGE(OpenCV 3.1.0 REQUIRED QUIET)
 FIND_PACKAGE(PCL 1.8 REQUIRED QUIET)
 FIND_PACKAGE(ZLIB REQUIRED QUIET)
 IF(OpenCV_FOUND)

@@ -120,7 +120,8 @@ Transform transformFromXYZCorrespondences(
                 else
                     nb_removed++;
             }
-            std::cout << "median is " << median << " with " << nb_removed << " matches removed, the with distance were not between " << median-0.2 << " and " << median+0.2 << std::endl;
+           // std::cout << "median is " << median << " with " << nb_removed << " matches removed over " << cloud1->size() << " , the with distance were not between " << median-0.2 << " and " << median+0.2 << std::endl;
+            std::cout << nb_removed << "/" <<  cloud1->size() << "  [" << median-0.2 << ";" << median+0.2<< "]"<< std::endl;
             model.reset(new pcl::SampleConsensusModelRegistrationTranslation<pcl::PointXYZ>(cloud2, indices));
         }
         else
@@ -380,6 +381,10 @@ Transform icpPointToPlane(
 {
     pcl::IterativeClosestPoint<pcl::PointNormal, pcl::PointNormal> icp;
     // Set the input source and target
+
+    pcl::io::savePCDFile("/home/silvio/cloud1_ICP_NEW.pcd", *cloud_source);
+    pcl::io::savePCDFile("/home/silvio/cloud2_ICP_REF.pcd", *cloud_target);
+
     icp.setInputTarget (cloud_target);
     icp.setInputSource (cloud_source);
 

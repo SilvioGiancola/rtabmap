@@ -279,8 +279,22 @@ Transform OdometryBOW::computeTransform(
 					if((int)newSignature->getWords3().size() >= this->getMinInliers())
 					{
                         Transform transformationGuess;
+                      //  if(myAda->isOpen())
+                      //      transformationGuess = this->getPose().translation() * Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
                         if(myAda->isOpen())
-                            transformationGuess = this->getPose().translation() * Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+                        {
+                            Transform currentPose = this->getPose();
+                        //    std::cout << "currentPose: " << currentPose.prettyPrint() << std::endl;
+
+                            Transform AdaFruitPose = Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+                            //std::cout << "AdaFruitPose: " << AdaFruitPose.prettyPrint() << std::endl;
+
+                            transformationGuess = currentPose.translation() * AdaFruitPose;
+                           // std::cout << "transformationGuess: " << transformationGuess.prettyPrint() << std::endl;
+                         }
+
+                        std::cout << transformationGuess.prettyPrint() << std::endl;
+
                         t = util3d::estimateMotion3DTo3D(
 								localMap_,
 								uMultimapToMap(newSignature->getWords3()),
@@ -292,6 +306,9 @@ Transform OdometryBOW::computeTransform(
 								&matches,
                                 &inliers,
                                 transformationGuess);
+
+                      //  std::cout << "result: " << t.prettyPrint() << std::endl;
+
 					}
 					else
 					{
@@ -447,6 +464,7 @@ Transform OdometryBOW::computeTransform(
 			(int)_memory->getStMem().size());
 
 
+  //  std::cout << "return " << output.prettyPrint() << std::endl;
 	return output;
 }
 

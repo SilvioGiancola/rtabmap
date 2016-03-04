@@ -35,6 +35,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pcl/io/pcd_io.h>
 #include <pcl/common/common.h>
 #include <pcl/common/geometry.h>
+#include <pcl/registration/icp.h>
+#include <pcl/registration/transformation_estimation_2D.h>
+#include <pcl/sample_consensus/sac_model_registration.h>
+#include <pcl/sample_consensus/sac_model_registration_translation.h>
+#include <pcl/sample_consensus/ransac.h>
+#include <pcl/common/time.h>
 #include <rtabmap/core/Transform.h>
 #include <opencv2/core/core.hpp>
 

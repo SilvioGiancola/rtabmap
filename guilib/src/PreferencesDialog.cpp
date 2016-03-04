@@ -3950,6 +3950,27 @@ void PreferencesDialog::testOdometry(int type)
     {
         odometry = new OdometryCustom(parameters);
     }
+    else if(this->getOdomStrategy() == 4)
+    {
+        float distance = rtabmap::Parameters::defaultOdomInlierDistance();
+        int iterations = rtabmap::Parameters::defaultOdomIterations();
+        int decimation = 4;
+        float voxel = 0.005;
+        int samples = 10000;
+        float ratio = 0.7f;
+        bool p2p = false;
+        UINFO("ICP maximum correspondences distance = %f", distance);
+        UINFO("ICP iterations =          %d", iterations);
+        UINFO("Cloud decimation =        %d", decimation);
+        UINFO("Cloud voxel size =        %f", voxel);
+        UINFO("Cloud samples =           %d", samples);
+        UINFO("Cloud correspondence ratio = %f", ratio);
+        UINFO("Cloud point to plane =    %s", p2p?"false":"true");
+
+        odometry = new rtabmap::OdometryICP(decimation, voxel, samples, distance, iterations, ratio, !p2p);
+
+      //  odometry = new OdometryICP(parameters);
+    }
 	else
 	{
 		odometry = new OdometryBOW(parameters);

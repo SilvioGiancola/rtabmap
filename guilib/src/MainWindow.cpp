@@ -2985,6 +2985,26 @@ void MainWindow::startDetection()
                 {
                     odom = new OdometryCustom(parameters);
                 }
+                else if(_preferencesDialog->getOdomStrategy() == 4)
+                {
+                    float distance = rtabmap::Parameters::defaultOdomInlierDistance();
+                    int iterations = rtabmap::Parameters::defaultOdomIterations();
+                    int decimation = 4;
+                    float voxel = 0.005;
+                    int samples = 10000;
+                    float ratio = 0.7f;
+                    bool p2p = false;
+                    UINFO("ICP maximum correspondences distance = %f", distance);
+                    UINFO("ICP iterations =          %d", iterations);
+                    UINFO("Cloud decimation =        %d", decimation);
+                    UINFO("Cloud voxel size =        %f", voxel);
+                    UINFO("Cloud samples =           %d", samples);
+                    UINFO("Cloud correspondence ratio = %f", ratio);
+                    UINFO("Cloud point to plane =    %s", p2p?"false":"true");
+
+                    odom = new rtabmap::OdometryICP(decimation, voxel, samples, distance, iterations, ratio, !p2p);
+                    //odom = new OdometryICP(parameters);
+                }
 				else
 				{
 					odom = new OdometryBOW(parameters);
@@ -3026,6 +3046,26 @@ void MainWindow::startDetection()
             else if(_preferencesDialog->getOdomStrategy() == 3)
             {
                 odom = new OdometryCustom(parameters);
+            }
+            else if(_preferencesDialog->getOdomStrategy() == 4)
+            { float distance = rtabmap::Parameters::defaultOdomInlierDistance();
+                int iterations = rtabmap::Parameters::defaultOdomIterations();
+                int decimation = 4;
+                float voxel = 0.005;
+                int samples = 10000;
+                float ratio = 0.7f;
+                bool p2p = false;
+                UINFO("ICP maximum correspondences distance = %f", distance);
+                UINFO("ICP iterations =          %d", iterations);
+                UINFO("Cloud decimation =        %d", decimation);
+                UINFO("Cloud voxel size =        %f", voxel);
+                UINFO("Cloud samples =           %d", samples);
+                UINFO("Cloud correspondence ratio = %f", ratio);
+                UINFO("Cloud point to plane =    %s", p2p?"false":"true");
+
+                odom = new rtabmap::OdometryICP(decimation, voxel, samples, distance, iterations, ratio, !p2p);
+
+              //  odom = new OdometryICP(parameters);
             }
 			else
             {

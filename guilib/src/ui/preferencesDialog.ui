@@ -95,7 +95,7 @@
                 <enum>QFrame::Raised</enum>
                </property>
                <property name="currentIndex">
-                <number>0</number>
+                <number>23</number>
                </property>
                <widget class="QWidget" name="page_22">
                 <layout class="QVBoxLayout" name="verticalLayout_29">
@@ -8899,6 +8899,11 @@ Lower the ratio -&gt; higher the precision. 0 means disabled, matching the neare
                         </item>
                         <item>
                          <property name="text">
+                          <string>Custom</string>
+                         </property>
+                        </item>
+                        <item>
+                         <property name="text">
                           <string>ICP</string>
                          </property>
                         </item>
@@ -9058,7 +9063,7 @@ Lower the ratio -&gt; higher the precision. 0 means disabled, matching the neare
                        <item>
                         <widget class="QStackedWidget" name="stackedWidget_odomEstimation">
                          <property name="currentIndex">
-                          <number>0</number>
+                          <number>1</number>
                          </property>
                          <widget class="QWidget" name="page_45">
                           <layout class="QVBoxLayout" name="verticalLayout_74">
@@ -9216,6 +9221,16 @@ Lower the ratio -&gt; higher the precision. 0 means disabled, matching the neare
                                 <item>
                                  <property name="text">
                                   <string>P3P</string>
+                                 </property>
+                                </item>
+                                <item>
+                                 <property name="text">
+                                  <string>UDP</string>
+                                 </property>
+                                </item>
+                                <item>
+                                 <property name="text">
+                                  <string>UPNP</string>
                                  </property>
                                 </item>
                                </widget>
@@ -10323,7 +10338,7 @@ Lower the ratio -&gt; higher the precision. 0 means disabled, matching the neare
   <customwidget>
    <class>UPlot</class>
    <extends>QWidget</extends>
-   <header>rtabmap/utilite/UPlot.h</header>
+   <header>../include/rtabmap/utilite/UPlot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
