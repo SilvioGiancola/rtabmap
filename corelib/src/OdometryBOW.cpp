@@ -250,7 +250,7 @@ Transform OdometryBOW::computeTransform(
 						const CameraModel & cameraModel = data.stereoCameraModel().isValid()?data.stereoCameraModel().left():data.cameraModels()[0];
 
 						UDEBUG("");
-                        Transform transformationGuess = this->getPose();
+                        Transform transformationGuess;// = this->getPose();
                         if(myAda->isOpen())
                             transformationGuess = this->getPose().translation() * Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
 

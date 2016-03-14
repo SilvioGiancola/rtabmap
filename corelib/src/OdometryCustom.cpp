@@ -37,32 +37,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "rtabmap/core/VWDictionary.h"
 #include "rtabmap/utilite/ULogger.h"
 #include "rtabmap/utilite/UTimer.h"
-#include "rtabmap/utilite/UConversion.h".
-
-#include "rtabmap/core/util3d_registration.h"
-
-#include "rtabmap/core/util3d_transforms.h"
-#include "rtabmap/core/util3d_filtering.h"
-#include "rtabmap/core/util3d.h"
-
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/common/common.h>
-#include <pcl/common/geometry.h>
-#include <pcl/registration/icp.h>
-#include <pcl/registration/transformation_estimation_2D.h>
-#include <pcl/registration/transformation_estimation_translation.h>
-#include <pcl/sample_consensus/sac_model_registration.h>
-#include <pcl/sample_consensus/sac_model_registration_translation.h>
-#include <pcl/sample_consensus/ransac.h>
-#include <pcl/common/time.h>
+#include "rtabmap/utilite/UConversion.h"
 #include <opencv2/calib3d/calib3d.hpp>
 
 #if _MSC_VER
-#define ISFINITE(value) _finite(value)
+    #define ISFINITE(value) _finite(value)
 #else
-#define ISFINITE(value) std::isfinite(value)
+    #define ISFINITE(value) std::isfinite(value)
 #endif
 
 namespace rtabmap {
@@ -113,13 +94,13 @@ OdometryCustom::OdometryCustom(const ParametersMap & parameters) :
     {
         std::string group = uSplit(iter->first, '/').front();
         if(group.compare("SURF") == 0 ||
-                group.compare("SIFT") == 0 ||
-                group.compare("BRIEF") == 0 ||
-                group.compare("FAST") == 0 ||
-                group.compare("ORB") == 0 ||
-                group.compare("FREAK") == 0 ||
-                group.compare("GFTT") == 0 ||
-                group.compare("BRISK") == 0)
+            group.compare("SIFT") == 0 ||
+            group.compare("BRIEF") == 0 ||
+            group.compare("FAST") == 0 ||
+            group.compare("ORB") == 0 ||
+            group.compare("FREAK") == 0 ||
+            group.compare("GFTT") == 0 ||
+            group.compare("BRISK") == 0)
         {
             customParameters.insert(*iter);
         }
@@ -189,7 +170,7 @@ OdometryCustom::OdometryCustom(const ParametersMap & parameters) :
         if((int)localMap_.size() < this->getMinInliers() || localMap_.size() == 0)
         {
             UERROR("The loaded fixed map from \"%s\" is too small! Only %d unique features loaded. Odometry won't be computed!",
-                   _fixedLocalMapPath.c_str(), (int)localMap_.size());
+                    _fixedLocalMapPath.c_str(), (int)localMap_.size());
         }
     }
 }
@@ -224,9 +205,7 @@ Transform OdometryCustom::computeTransform(
     Transform output;
 
 
-    Transform transformationGuess;
-    if(myAda->isOpen())
-        transformationGuess = this->getPose().translation() * Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+
 
 
     if(info)
@@ -271,19 +250,23 @@ Transform OdometryCustom::computeTransform(
                         const CameraModel & cameraModel = data.stereoCameraModel().isValid()?data.stereoCameraModel().left():data.cameraModels()[0];
 
                         UDEBUG("");
+                        Transform transformationGuess = this->getPose();
+                        if(myAda->isOpen())
+                            transformationGuess = this->getPose().translation() * Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+
                         t = util3d::estimateMotion3DTo2D(
-                                    localMap_,
-                                    uMultimapToMap(newSignature->getWords()),
-                                    cameraModel,
-                                    this->getMinInliers(),
-                                    this->getIterations(),
-                                    this->getPnPReprojError(),
-                                    this->getPnPFlags(),
-                                    this->getPose(),
-                                    uMultimapToMap(newSignature->getWords3()),
-                                    &variance,
-                                    &matches,
-                                    &inliers);
+                                localMap_,
+                                uMultimapToMap(newSignature->getWords()),
+                                cameraModel,
+                                this->getMinInliers(),
+                                this->getIterations(),
+                                this->getPnPReprojError(),
+                                this->getPnPFlags(),
+                                transformationGuess,
+                                uMultimapToMap(newSignature->getWords3()),
+                                &variance,
+                                &matches,
+                                &inliers);
                     }
                     else
                     {
@@ -295,132 +278,36 @@ Transform OdometryCustom::computeTransform(
                     // 3D to 3D
                     if((int)newSignature->getWords3().size() >= this->getMinInliers())
                     {
-                        UTimer timer;
-
-                       // Transform transform;
-                        pcl::PointCloud<pcl::PointXYZ>::Ptr inliers1(new pcl::PointCloud<pcl::PointXYZ>); // previous
-                        pcl::PointCloud<pcl::PointXYZ>::Ptr inliers2(new pcl::PointCloud<pcl::PointXYZ>); // new
-
-                        std::vector<int> matches;
-                        util3d::findCorrespondences(
-                                    localMap_,
-                                    uMultimapToMap(newSignature->getWords3()),
-                                    *inliers1,
-                                    *inliers2,
-                                    0,
-                                    &matches);
-
-
-                        bool useInitialGuess = !transformationGuess.isIdentity() && !transformationGuess.isNull();
-
-                        if (useInitialGuess)
-                            inliers2 = rtabmap::util3d::transformPointCloud(inliers2, transformationGuess);
-
-
-                        pcl::io::savePCDFile("/home/silvio/cloud1_ICP_NEW.pcd", *inliers1);
-                        pcl::io::savePCDFile("/home/silvio/cloud2_ICP_REF.pcd", *inliers2);
-
-                        /*int varianceOut = 0;
-                         if(varianceOut)
+                        Transform transformationGuess;
+                      //  if(myAda->isOpen())
+                      //      transformationGuess = this->getPose().translation() * Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+                        if(myAda->isOpen())
                         {
-                            *varianceOut = 1.0;
-                        }*/
+                            Transform currentPose = this->getPose();
+                        //    std::cout << "currentPose: " << currentPose.prettyPrint() << std::endl;
 
-                        if((int)inliers1->size() >= this->getMinInliers())
-                        {
-                            std::vector<int> inliers;
-                            /*  Transform t = util3d::transformFromXYZCorrespondences(
-                                        inliers2,
-                                        inliers1,
-                                        inliersDistance,
-                                        iterations,
-                                        refineIterations>0,
-                                        3.0,
-                                        refineIterations,
-                                        &inliers,
-                                        varianceOut,
-                                        useInitialGuess);*/
+                            Transform AdaFruitPose = Transform::fromEigen3f(Eigen::Affine3f(myAda->returnPose()));
+                            //std::cout << "AdaFruitPose: " << AdaFruitPose.prettyPrint() << std::endl;
 
-                            pcl::PointCloud<pcl::PointXYZ>::Ptr newCloudRegistered(new pcl::PointCloud<pcl::PointXYZ>);
-                            pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
-                            // Set the input source and target
+                            transformationGuess = currentPose.translation() * AdaFruitPose;
+                           // std::cout << "transformationGuess: " << transformationGuess.prettyPrint() << std::endl;
+                         }
 
+                        std::cout << transformationGuess.prettyPrint() << std::endl;
 
-                            icp.setInputTarget (inliers2);
-                            icp.setInputSource (inliers1);
+                        t = util3d::estimateMotion3DTo3D(
+                                localMap_,
+                                uMultimapToMap(newSignature->getWords3()),
+                                this->getMinInliers(),
+                                this->getInlierDistance(),
+                                this->getIterations(),
+                                this->getRefineIterations(),
+                                &variance,
+                                &matches,
+                                &inliers,
+                                transformationGuess);
 
-                            pcl::registration::TransformationEstimation<pcl::PointXYZ, pcl::PointXYZ>::Ptr est;
-                            if (useInitialGuess)
-                                est.reset(new pcl::registration::TransformationEstimationTranslation<pcl::PointXYZ, pcl::PointXYZ>);
-                            else
-                                est.reset(new pcl::registration::TransformationEstimationSVD<pcl::PointXYZ, pcl::PointXYZ>);
-
-                            icp.setTransformationEstimation(est);
-
-                            // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
-                            icp.setMaxCorrespondenceDistance (0.1);
-                            // Set the maximum number of iterations (criterion 1)
-                            icp.setMaximumIterations (200);
-                            // Set the transformation epsilon (criterion 2)
-                            //icp.setTransformationEpsilon (transformationEpsilon);
-                            // Set the euclidean distance difference epsilon (criterion 3)
-                            //icp.setEuclideanFitnessEpsilon (1);
-                            //icp.setRANSACOutlierRejectionThreshold(maxCorrespondenceDistance);
-
-                            // Perform the alignment
-                            icp.align (*newCloudRegistered);
-                            bool hasConverged = icp.hasConverged();
-                            t = Transform::fromEigen4f(icp.getFinalTransformation());
-
-
-
-
-                            util3d::computeVarianceAndCorrespondences(
-                                        newCloudRegistered,
-                                        inliers2,
-                                        0.1,
-                                        variance,
-                                        correspondences);
-
-                            // verify if there are enough correspondences
-                            float correspondencesRatio = float(correspondences)/float(inliers2->size()>inliers2->size()?inliers2->size():inliers2->size());
-
-                            if(!t.isNull() && hasConverged &&
-                                    correspondencesRatio >= 0.2)
-                            {
-                                output = t;
-                                inliers2 = inliers1;
-                            }
-                            else
-                            {
-                                UWARN("Transform not valid (hasConverged=%s variance = %f)",
-                                      hasConverged?"true":"false", variance);
-                            }
-
-                            // std::cout << "transform:" << timer.elapsed() << std::endl;
-                            if(!t.isNull() && (int)inliers.size() >= this->getMinInliers())
-                            {
-                                if (useInitialGuess)
-                                    t = t * transformationGuess;
-
-                            }
-
-                            std::vector<int> matchesOut;
-                            if(&matchesOut)
-                            {
-                                matchesOut = matches;
-                            }
-
-                            std::vector<int> inliersOut;
-                            if(&inliersOut)
-                            {
-                                inliersOut.resize(inliers.size());
-                                for(unsigned int i=0; i<inliers.size(); ++i)
-                                {
-                                    inliersOut.at(i) = matches[inliers[i]];
-                                }
-                            }
-                        }
+                      //  std::cout << "result: " << t.prettyPrint() << std::endl;
 
                     }
                     else
@@ -441,10 +328,6 @@ Transform OdometryCustom::computeTransform(
                 {
                     // make it incremental
                     transform = this->getPose().inverse() * t;
-
-                    std::cout << this->getPose().prettyPrint() << std::endl;
-                    std::cout << t.prettyPrint() << std::endl;
-                    std::cout << transform.prettyPrint() << std::endl;
                 }
                 else if(correspondences < this->getMinInliers())
                 {
@@ -487,7 +370,7 @@ Transform OdometryCustom::computeTransform(
                 if(_localHistoryMaxSize == 0 && localMap_.size() > 0 && localMap_.size() > newSignature->getWords3().size())
                 {
                     UERROR("Local map should have only words of the last added signature here! (size=%d, max history size=%d, newWords=%d)",
-                           (int)localMap_.size(), _localHistoryMaxSize, (int)newSignature->getWords3().size());
+                            (int)localMap_.size(), _localHistoryMaxSize, (int)newSignature->getWords3().size());
                 }
 
                 // update local map
@@ -570,18 +453,18 @@ Transform OdometryCustom::computeTransform(
     }
 
     UINFO("Odom update time = %fs lost=%s features=%d inliers=%d/%d variance=%f local_map=%d dict=%d nodes=%d",
-          timer.elapsed(),
-          output.isNull()?"true":"false",
-          nFeatures,
-          inliersCount,
-          correspondences,
-          variance,
-          (int)localMap_.size(),
-          (int)_memory->getVWDictionary()->getVisualWords().size(),
-          (int)_memory->getStMem().size());
+            timer.elapsed(),
+            output.isNull()?"true":"false",
+            nFeatures,
+            inliersCount,
+            correspondences,
+            variance,
+            (int)localMap_.size(),
+            (int)_memory->getVWDictionary()->getVisualWords().size(),
+            (int)_memory->getStMem().size());
 
-    std::cout << "output" << output.prettyPrint() << std::endl;
 
+  //  std::cout << "return " << output.prettyPrint() << std::endl;
     return output;
 }
 

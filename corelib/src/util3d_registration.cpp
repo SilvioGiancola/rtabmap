@@ -73,7 +73,7 @@ Transform transformFromXYZCorrespondences(
     Transform transform;
     if(cloud1->size() >=3 && cloud1->size() == cloud2->size())
     {
-        // pcl::ScopeTime t("RANSAC");
+         pcl::ScopeTime t("RANSAC");
 
         // RANSAC
         UDEBUG("iterations=%d inlierThreshold=%f", iterations, inlierThreshold);
@@ -99,14 +99,14 @@ Transform transformFromXYZCorrespondences(
             }
 
             std::sort(dists.begin(), dists.end());
-            /*
-            double z05 =    dists[0.05*dists.size()];  std::cout << "The 05%    is " << z05 << '\n';
-            double z15 =    dists[0.15*dists.size()];  std::cout << "The 15%    is " << z15 << '\n';
-            double z25 =    dists[0.25*dists.size()];  std::cout << "The 25%    is " << z25 << '\n';
-            double median = dists[0.50*dists.size()];  std::cout << "The median is " << median << '\n';
-            double z75 =    dists[0.75*dists.size()];  std::cout << "The 75%    is " << z75 << '\n';
-            double z85 =    dists[0.85*dists.size()];  std::cout << "The 85%    is " << z85 << '\n';
-            */
+
+            //            double z05 =    dists[0.05*dists.size()];  std::cout << "The 05%    is " << z05 << '\n';
+            //            double z15 =    dists[0.15*dists.size()];  std::cout << "The 15%    is " << z15 << '\n';
+            //            double z25 =    dists[0.25*dists.size()];  std::cout << "The 25%    is " << z25 << '\n';
+            //            double median = dists[0.50*dists.size()];  std::cout << "The median is " << median << '\n';
+            //            double z75 =    dists[0.75*dists.size()];  std::cout << "The 75%    is " << z75 << '\n';
+            //            double z85 =    dists[0.85*dists.size()];  std::cout << "The 85%    is " << z85 << '\n';
+
             int nb_removed = 0;
             double median = dists[0.50*dists.size()];
             for (int i = 0; i < (int)cloud1->size(); ++i)
@@ -120,9 +120,10 @@ Transform transformFromXYZCorrespondences(
                 else
                     nb_removed++;
             }
-           // std::cout << "median is " << median << " with " << nb_removed << " matches removed over " << cloud1->size() << " , the with distance were not between " << median-0.2 << " and " << median+0.2 << std::endl;
-            std::cout << nb_removed << "/" <<  cloud1->size() << "  [" << median-0.2 << ";" << median+0.2<< "]"<< std::endl;
-            model.reset(new pcl::SampleConsensusModelRegistrationTranslation<pcl::PointXYZ>(cloud2, indices));
+            std::cout << "median is " << median << " with " << nb_removed << " matches removed over " << cloud1->size() << " , the with distance were not between " << median-0.2 << " and " << median+0.2 << std::endl;
+            std::cout << "correspondences are " << nb_removed << "/" <<  cloud1->size() << "  [" << median-0.2 << ";" << median+0.2<< "]"<< std::endl;
+           // model.reset(new pcl::SampleConsensusModelRegistrationTranslation<pcl::PointXYZ>(cloud2, indices));
+            model.reset(new pcl::SampleConsensusModelRegistration<pcl::PointXYZ>(cloud2, indices));
         }
         else
         {
@@ -255,6 +256,12 @@ Transform transformFromXYZCorrespondences(
 
                 transform = Transform::fromEigen4f(bestTransformation);
                 UDEBUG("RANSAC inliers=%d/%d tf=%s", (int)inliers.size(), (int)cloud1->size(), transform.prettyPrint().c_str());
+
+
+                //std::cout << "RANSAC:" << transform.prettyPrint() << std::endl;
+                //  Transform transform_inv = transform.inverse();
+                //   if (transonly)
+                //     transform.rotation().setIdentity();
 
                 return transform.inverse(); // inverse to get actual pose transform (not correspondences transform)
             }

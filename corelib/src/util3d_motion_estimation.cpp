@@ -109,28 +109,33 @@ Transform estimateMotion3DTo2D(
         cv::Rodrigues(R, rvec);
         cv::Mat tvec = (cv::Mat_<double>(1,3) <<
                         (double)guessCameraFrame.x(), (double)guessCameraFrame.y(), (double)guessCameraFrame.z());
-
-        solvePnPRansac(
-                    objectPoints,
-                    imagePoints,
-                    K,
-                    cv::Mat(),
-                    rvec,
-                    tvec,
-                    true,
-                    iterations,
-                    reprojError,
+        {
+            pcl::ScopeTime opencvtime("OpenCV solve PnPRansac");
+            solvePnPRansac(
+                        objectPoints,
+                        imagePoints,
+                        K,
+                        cv::Mat(),
+                        rvec,
+                        tvec,
+                        true,
+                        iterations,
+                        reprojError,
             #if CV_MAJOR_VERSION < 3
-                    0, // min inliers
+                        0, // min inliers
             #else
-                    0.99, // confidence
+                        0.99, // confidence
             #endif
-                    inliers,
-                    flagsPnP);
+                        inliers,
+                        flagsPnP);
 
+        }
         if((int)inliers.size() >= minInliers)
         {
-            cv::Rodrigues(rvec, R);
+            //std::cout << "guess " << guess.prettyPrint() << std::endl;
+           // if (guess.isIdentity())
+                cv::Rodrigues(rvec, R);
+
             Transform pnp(R.at<double>(0,0), R.at<double>(0,1), R.at<double>(0,2), tvec.at<double>(0),
                           R.at<double>(1,0), R.at<double>(1,1), R.at<double>(1,2), tvec.at<double>(1),
                           R.at<double>(2,0), R.at<double>(2,1), R.at<double>(2,2), tvec.at<double>(2));
